@@ -1,0 +1,10 @@
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+   <S:Body>
+      <ns2:modifyGoodsPackageResponse xmlns:ns2="http://service.cms.coship.com/">
+         <return>
+            <message>%s</message>
+            <returnCode>%s</returnCode>
+         </return>
+      </ns2:modifyGoodsPackageResponse>
+   </S:Body>
+</S:Envelope>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.dds.dao.DdsUserServiceDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.dds.entity.DdsUserServiceEntity" id="ddsUserServiceMap">
+        <result property="id" column="id"/>
+        <result property="jsonvalue" column="jsonvalue"/>
+        <result property="serviceType" column="service_type"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="io.renren.modules.dds.entity.DdsUserServiceEntity">
+		select * from dds_user_service where id = #{value}
+	</select>
+	
+	<sql id="queryListWhere">
+		<where>
+			<if test="qJsonvalue != null and qJsonvalue != ''">
+				jsonvalue LIKE CONCAT('%', #{qJsonvalue}, '%')
+			</if>
+			<if test="qServiceType != null and qServiceType != ''">
+				AND service_type = #{qServiceType}
+			</if>
+			<if test="qCreateTimeStart != null and qCreateTimeStart != ''">
+				AND create_time <![CDATA[>=]]> #{qCreateTimeStart}
+			</if>
+			<if test="qCreateTimeEnd != null and qCreateTimeEnd != ''">
+				AND create_time <![CDATA[<=]]> #{qCreateTimeEnd}
+			</if>
+		</where>
+	</sql>
+
+	<select id="queryList" resultType="io.renren.modules.dds.entity.DdsUserServiceEntity">
+		select * from dds_user_service
+		<include refid="queryListWhere"></include>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by create_time desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from dds_user_service 
+		<include refid="queryListWhere"></include>
+	</select>
+	 
+	<insert id="save" parameterType="io.renren.modules.dds.entity.DdsUserServiceEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into dds_user_service
+		(
+			`id`, 
+			`jsonvalue`, 
+			`service_type`, 
+			`create_time`,
+			`frominterfacepro`
+		)
+		values
+		(
+			#{id}, 
+			#{jsonvalue}, 
+			#{serviceType}, 
+			NOW(),
+			#{frominterfacepro}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="io.renren.modules.dds.entity.DdsUserServiceEntity">
+		update dds_user_service 
+		<set>
+			<if test="jsonvalue != null">`jsonvalue` = #{jsonvalue}, </if>
+			<if test="serviceType != null">`service_type` = #{serviceType}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from dds_user_service where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from dds_user_service where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

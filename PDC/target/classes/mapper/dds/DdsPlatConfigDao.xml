@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.dds.dao.DdsPlatConfigDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="io.renren.modules.dds.entity.DdsPlatConfigEntity"
+		id="ddsPlatConfigMap">
+		<result property="id" column="id" />
+		<result property="identity" column="identity" />
+		<result property="name" column="name" />
+		<result property="serviceUrl" column="service_url" />
+		<result property="maxaccept" column="maxAccept" />
+		<result property="createTime" column="create_time" />
+		<result property="updateTime" column="update_time" />
+	</resultMap>
+
+	<select id="queryObject" resultType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		select * from
+		dds_plat_config where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		select * from dds_plat_config
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	<select id="findPlatBySourceId" resultType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		select *,drc.target_interfacepro as interfacepro from dds_plat_config dpc
+		LEFT JOIN dds_route_config drc ON
+		dpc.id = drc.target_plat_id
+		LEFT JOIN dds_plat_config dpc1 ON dpc1.id =
+		drc.source_plat_id
+		WHERE
+		drc.`status`='1'
+
+		<if test="sourcePlatFlag != null"> AND dpc1.identity = #{sourcePlatFlag}</if>
+		<if test="sourceInterfacepro != null"> AND drc.soruce_interfacepro = #{sourceInterfacepro}</if>
+
+	</select>
+	<select id="findTargetPlatByRouteId" resultType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		SELECT *,rc.target_interfacepro as interfacepro FROM dds_plat_config pc
+		LEFT JOIN dds_route_config rc ON rc.target_plat_id = pc.id
+		WHERE 1=1
+		<if test="routeId != null"> AND rc.id = #{routeId}</if>
+
+	</select>
+
+	<select id="queryListAll" resultType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		select * from
+		dds_plat_config
+	</select>
+
+	<select id="queryTotal" resultType="int">
+		select count(*) from
+		dds_plat_config
+	</select>
+
+	<insert id="save" parameterType="io.renren.modules.dds.entity.DdsPlatConfigEntity"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into dds_plat_config
+		(
+		`identity`,
+		`name`,
+		`service_url`,
+		`maxAccept`,
+		`create_time`,
+		`update_time`
+		)
+		values
+		(
+		#{identity},
+		#{name},
+		#{serviceUrl},
+		#{maxaccept},
+		#{createTime},
+		#{updateTime}
+		)
+	</insert>
+
+	<update id="update" parameterType="io.renren.modules.dds.entity.DdsPlatConfigEntity">
+		update dds_plat_config
+		<set>
+			<if test="identity != null">`identity` = #{identity}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="serviceUrl != null">`service_url` = #{serviceUrl}, </if>
+			<if test="maxaccept != null">`maxAccept` = #{maxaccept}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="updateTime != null">`update_time` = #{updateTime}</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from dds_plat_config where id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from dds_plat_config where id in
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

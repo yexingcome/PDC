@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.dds.dao.DdsAreaDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.dds.entity.DdsAreaEntity" id="ddsAreaMap">
+        <result property="id" column="ID"/>
+        <result property="name" column="name"/>
+        <result property="startArea" column="start_area"/>
+        <result property="endArea" column="end_area"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="idsFullPath" column="ids_full_path"/>
+        <result property="branchNo" column="branch_no"/>
+        <result property="branchName" column="branch_name"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="io.renren.modules.dds.entity.DdsAreaEntity">
+		select * from dds_area where ID = #{value}
+	</select>
+
+	<sql id="queryListWhere">
+		<where>
+			<if test="areaCode != null and areaCode != ''">
+				${areaCode} BETWEEN start_area AND end_area 
+			</if>
+		</where>
+	</sql>
+	<select id="queryList" resultType="io.renren.modules.dds.entity.DdsAreaEntity">
+		select * from dds_area
+		<include refid="queryListWhere"></include>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by ID desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from dds_area 
+		<include refid="queryListWhere"></include>
+	</select>
+ 	<select id="findByAreacode" resultType="io.renren.modules.dds.entity.DdsAreaEntity">
+		select * from dds_area 
+		<if test="areaCode != null and areaCode != ''">
+			where	${areaCode} BETWEEN start_area AND end_area LIMIT 1
+		</if>
+	</select>
+	 
+	<insert id="save" parameterType="io.renren.modules.dds.entity.DdsAreaEntity">
+		insert into dds_area
+		(
+			`ID`, 
+			`name`, 
+			`start_area`, 
+			`end_area`, 
+			`create_time`, 
+			`modify_time`, 
+			`parent_id`, 
+			`ids_full_path`, 
+			`branch_no`, 
+			`branch_name`
+		)
+		values
+		(
+			uuid(), 
+			#{name}, 
+			#{startArea}, 
+			#{endArea}, 
+			#{createTime}, 
+			#{modifyTime}, 
+			#{parentId}, 
+			#{idsFullPath}, 
+			#{branchNo}, 
+			#{branchName}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="io.renren.modules.dds.entity.DdsAreaEntity">
+		update dds_area 
+		<set>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="startArea != null">`start_area` = #{startArea}, </if>
+			<if test="endArea != null">`end_area` = #{endArea}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="modifyTime != null">`modify_time` = #{modifyTime}, </if>
+			<if test="parentId != null">`parent_id` = #{parentId}, </if>
+			<if test="idsFullPath != null">`ids_full_path` = #{idsFullPath}, </if>
+			<if test="branchNo != null">`branch_no` = #{branchNo}, </if>
+			<if test="branchName != null">`branch_name` = #{branchName}</if>
+		</set>
+		where ID = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from dds_area where ID = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from dds_area where ID in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

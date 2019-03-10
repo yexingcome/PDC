@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.dds.dao.DdsRouteConfigDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="io.renren.modules.dds.entity.DdsRouteConfigEntity"
+		id="ddsRouteConfigMap">
+		<result property="id" column="id" />
+		<result property="sourcePlatId" column="source_plat_id" />
+		<result property="targetPlatId" column="target_plat_id" />
+		<result property="status" column="status" />
+		<result property="soruceInterfacepro" column="soruce_interfacepro" />
+		<result property="targetInterfacepro" column="target_interfacepro" />
+		<result property="createTime" column="create_time" />
+		<result property="updateTime" column="update_time" />
+	</resultMap>
+
+	<select id="queryObject" resultType="io.renren.modules.dds.entity.DdsRouteConfigEntity">
+		select * from
+		dds_route_config where id = #{value}
+	</select>
+
+	<select id="findRouteByPlatFlags" resultType="io.renren.modules.dds.entity.DdsRouteConfigEntity">
+		SELECT * FROM
+		dds_route_config rc
+		LEFT JOIN dds_plat_config pc1 ON
+		rc.source_plat_id = pc1.id
+		LEFT JOIN dds_plat_config pc2 ON
+		rc.target_plat_id = pc2.id
+		WHERE 1=1
+		<if test="sourcePlatFlag != null">
+			AND
+			pc1.identity = #{sourcePlatFlag}
+		</if>
+		<if test="targetPlatFlag != null">
+			AND
+			pc2.identity = #{targetPlatFlag}
+		</if>
+		<if test="soruceInterfacepro != null and targetInterfacepro != null">
+			AND
+			rc.soruce_interfacepro = #{soruceInterfacepro} AND rc.target_interfacepro = #{targetInterfacepro}
+		</if>
+	</select>
+
+	<select id="queryList" resultType="io.renren.modules.dds.entity.DdsRouteConfigEntity">
+		select rc.*,pc1.`name` as sourcePlatName,pc2.`name` as targetPlatName
+		from dds_route_config rc
+		LEFT JOIN dds_plat_config pc1 ON
+		rc.source_plat_id = pc1.id
+		LEFT JOIN dds_plat_config pc2 ON
+		rc.target_plat_id = pc2.id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by rc.id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="queryTotal" resultType="int">
+		select count(*) from
+		dds_route_config
+	</select>
+	<insert id="save" parameterType="io.renren.modules.dds.entity.DdsRouteConfigEntity"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into dds_route_config
+		(
+		`source_plat_id`,
+		`target_plat_id`,
+		`soruce_interfacepro`,
+		`target_interfacepro`,
+		`status`,
+		`create_time`,
+		`update_time`
+		)
+		values
+		(
+		#{sourcePlatId},
+		#{targetPlatId},
+		#{soruceInterfacepro},
+		#{targetInterfacepro},
+		#{status},
+		#{createTime},
+		#{updateTime}
+		)
+	</insert>
+
+	<update id="update" parameterType="io.renren.modules.dds.entity.DdsRouteConfigEntity">
+		update dds_route_config
+		<set>
+			<if test="sourcePlatId != null">`source_plat_id` = #{sourcePlatId}, </if>
+			<if test="targetPlatId != null">`target_plat_id` = #{targetPlatId}, </if>
+			<if test="soruceInterfacepro != null">`soruce_interfacepro` = #{soruceInterfacepro}, </if>
+			<if test="targetInterfacepro != null">`target_interfacepro` = #{targetInterfacepro}, </if>
+			<if test="status != null">`status` = #{status}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="updateTime != null">`update_time` = #{updateTime}</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from dds_route_config where id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from dds_route_config where id in
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

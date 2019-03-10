@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.dds.dao.DdsPublicRecordDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="io.renren.modules.dds.entity.DdsPublicRecordEntity"
+		id="ddsPublicRecordMap">
+		<result property="id" column="id" />
+		<result property="routeId" column="route_id" />
+		<result property="businessType" column="business_type" />
+		<result property="message" column="message" />
+		<result property="status" column="status" />
+		<result property="createTime" column="create_time" />
+		<result property="publicTime" column="public_time" />
+		<result property="replayTime" column="replay_time" />
+		<result property="replayMess" column="replay_mess" />
+	</resultMap>
+
+	<select id="queryObject" resultType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		select * from
+		dds_public_record where id = #{value}
+	</select>
+	<select id="queryObjectBatch" resultType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		select * from dds_public_record where id in
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+		order by create_time asc
+	</select>
+	<select id="getWaitPublish" resultType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		SELECT * FROM
+		dds_public_record WHERE `status`='-1' ORDER BY create_time LIMIT 100;
+	</select>
+
+	<select id="queryList" resultType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		select *,pc1.identity as 'sourceName',pc2.identity as 'targetName' from
+		dds_public_record pr
+		LEFT JOIN dds_route_config rc ON pr.route_id =
+		rc.id
+		LEFT JOIN dds_plat_config pc1 ON rc.source_plat_id = pc1.id
+		LEFT
+		JOIN dds_plat_config pc2 ON rc.target_plat_id = pc2.id
+		where 1=1
+		<if test="sourcePlatId != null and sourcePlatId.trim() != ''">
+			and pc1.`id` = #{sourcePlatId}
+		</if>
+		<if test="targetPlatId != null and targetPlatId.trim() != ''">
+			and pc2.`id` = #{targetPlatId}
+		</if>
+		<if test="status != null and status.trim() != ''">
+			and pr.`status` = #{status}
+		</if>
+		<if test="businessType != null and businessType.trim() != ''">
+			and pr.`business_type` = #{businessType}
+		</if>
+		<if test="userid != null and userid.trim() != ''">
+			AND pr.message LIKE '%${userid}%'
+		</if>
+		<if test="keyno != null and keyno.trim() != ''">
+			AND pr.message LIKE '%${keyno}%'
+		</if>
+		<if test="productid != null and productid.trim() != ''">
+			AND pr.message LIKE '%${productid}%'
+		</if>
+		<if test="qCreateTimeStart != null and qCreateTimeStart != ''">
+			AND STR_TO_DATE(pr.create_time, '%Y/%m/%d %H:%i:%s') <![CDATA[>=]]> #{qCreateTimeStart}
+		</if>
+		<if test="qCreateTimeEnd != null and qCreateTimeEnd != ''">
+			AND STR_TO_DATE(pr.create_time, '%Y/%m/%d %H:%i:%s') <![CDATA[<=]]> #{qCreateTimeEnd}
+		</if>
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by pr.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by pr.create_time desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="queryTotal" resultType="int">
+		select count(*) from
+		dds_public_record pr
+		LEFT JOIN dds_route_config rc ON pr.route_id =
+		rc.id
+		LEFT JOIN dds_plat_config pc1 ON rc.source_plat_id = pc1.id
+		LEFT
+		JOIN dds_plat_config pc2 ON rc.target_plat_id = pc2.id
+		where 1=1
+		<if test="sourcePlatId != null and sourcePlatId.trim() != ''">
+			and pc1.`id` = #{sourcePlatId}
+		</if>
+		<if test="targetPlatId != null and targetPlatId.trim() != ''">
+			and pc2.`id` = #{targetPlatId}
+		</if>
+		<if test="status != null and status.trim() != ''">
+			and pr.`status` = #{status}
+		</if>
+		<if test="businessType != null and businessType.trim() != ''">
+			and pr.`business_type` = #{businessType}
+		</if>
+		<if test="userid != null and userid.trim() != ''">
+			AND pr.message LIKE '%${userid}%'
+		</if>
+		<if test="keyno != null and keyno.trim() != ''">
+			AND pr.message LIKE '%${keyno}%'
+		</if>
+		<if test="productid != null and productid.trim() != ''">
+			AND pr.message LIKE '%${productid}%'
+		</if>
+		<if test="qCreateTimeStart != null and qCreateTimeStart != ''">
+			AND STR_TO_DATE(pr.create_time, '%Y/%m/%d %H:%i:%s') <![CDATA[>=]]> #{qCreateTimeStart}
+		</if>
+		<if test="qCreateTimeEnd != null and qCreateTimeEnd != ''">
+			AND STR_TO_DATE(pr.create_time, '%Y/%m/%d %H:%i:%s') <![CDATA[<=]]> #{qCreateTimeEnd}
+		</if>
+	</select>
+
+	<insert id="save" parameterType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		insert into dds_public_record
+		(
+		`id`,
+		`route_id`,
+		`business_type`,
+		`message`,
+		`status`,
+		`create_time`,
+		`public_time`,
+		`replay_time`,
+		`replay_mess`
+		)
+		values
+		(
+		#{id},
+		#{routeId},
+		#{businessType},
+		#{message},
+		#{status},
+		#{createTime},
+		#{publicTime},
+		#{replayTime},
+		#{replayMess}
+		)
+	</insert>
+
+	<update id="update" parameterType="io.renren.modules.dds.entity.DdsPublicRecordEntity">
+		update dds_public_record
+		<set>
+			<if test="routeId != null">`route_id` = #{routeId}, </if>
+			<if test="businessType != null">`business_type` = #{businessType}, </if>
+			<if test="message != null">`message` = #{message}, </if>
+			<if test="status != null">`status` = #{status}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="publicTime != null">`public_time` = #{publicTime}, </if>
+			<if test="replayTime != null">`replay_time` = #{replayTime},</if>
+			<if test="replayMess != null">`replay_mess` = #{replayMess}</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from dds_public_record where id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from dds_public_record where id in
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<update id="republish">
+		UPDATE dds_public_record SET
+		`status`='-1',public_time=NULL,replay_time=NULL,replay_mess=NULL where
+		id in
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</update>
+
+</mapper>
